@@ -13,6 +13,9 @@ import pandas as pd
 PASTA_PROJETO = Path(__file__).resolve().parent
 CAMINHO_BASE = PASTA_PROJETO / "dados" / "Base Varejo.csv"
 
+PASTA_SAIDAS = PASTA_PROJETO / "saidas"
+CAMINHO_DF_LIMPO = PASTA_SAIDAS / "df_limpo.csv"
+
 SEPARADOR_CSV = ";"
 
 
@@ -961,9 +964,37 @@ def gerar_relatorio_final(
     for numero, conclusao in enumerate(conclusoes, start=1):
         print(f"{numero}. {conclusao}")
 
+# ------------------------------------------------------------
+# 12. Salvamento da base limpa
+# ------------------------------------------------------------
+
+def salvar_base_limpa(df: pd.DataFrame, caminho_saida: Path) -> None:
+    """
+    Salva a base limpa em arquivo CSV.
+
+    O arquivo df_limpo.csv é uma das entregas finais do projeto.
+    Ele será salvo dentro da pasta saidas.
+    """
+
+    caminho_saida.parent.mkdir(parents=True, exist_ok=True)
+
+    df.to_csv(
+        caminho_saida,
+        sep=SEPARADOR_CSV,
+        index=False,
+        encoding="utf-8-sig"
+    )
+
+    print("\n" + "=" * 60)
+    print("ARQUIVO FINAL GERADO")
+    print("=" * 60)
+    print(f"Base limpa salva em: {caminho_saida}")
+    print(f"Linhas salvas: {formatar_inteiro(df.shape[0])}")
+    print(f"Colunas salvas: {df.shape[1]}")
+
 
 # ------------------------------------------------------------
-# 12. Execução principal do script
+# 13. Execução principal do script
 # ------------------------------------------------------------
 
 def main() -> None:
@@ -1004,6 +1035,8 @@ def main() -> None:
         agrupamentos=agrupamentos,
         estatisticas_filhos=estatisticas_filhos
     )
+
+    salvar_base_limpa(df_limpo, CAMINHO_DF_LIMPO)
 
 
 if __name__ == "__main__":
