@@ -12,18 +12,18 @@ O objetivo deste projeto é realizar uma Análise Exploratória de Dados aplicad
 
 ## Etapa atual
 
-O projeto está na Sprint 2 - Transformação de Strings, Integer, Float e Datetime.
+O projeto está na Sprint 3 - Limpeza de Nulos e Duplicatas.
 
-Nesta etapa, foram desenvolvidas funções para:
+Nesta etapa, foram realizadas as seguintes ações:
 
-- padronizar nomes de colunas;
-- limpar valores textuais;
-- converter valores inteiros;
-- converter valores decimais;
-- converter strings de data usando o módulo `datetime`;
-- usar expressões regulares para apoiar a limpeza e transformação dos dados.
+- remoção de colunas totalmente vazias;
+- identificação de valores nulos antes e depois da limpeza;
+- tratamento de categorias vazias, nulas ou inválidas com o valor `Sem Categoria`;
+- uso de condicionais `if/else` para tratar categorias inválidas;
+- conversão da coluna de data usando o módulo `datetime`;
+- remoção de duplicatas exatas;
+- validação da regra de negócio do identificador de compra `CO_ID`.
 
-A limpeza completa de nulos, duplicatas e categorias inválidas será realizada na Sprint 3.
 
 ## Como executar
 
