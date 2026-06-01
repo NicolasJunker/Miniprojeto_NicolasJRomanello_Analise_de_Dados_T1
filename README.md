@@ -27,5 +27,7 @@ No terminal, rode:
 
 ```bash
 python miniprojeto_varejo.py
-ou
+
+#ou
+
 py miniprojeto_varejo.py

@@ -1,36 +1,75 @@
 from pathlib import Path
+import csv
 
 import pandas as pd
 
 
-# 1. Definição dos caminhos do projeto
+# 1. Definição dos caminhos e configurações do projeto
 
 PASTA_PROJETO = Path(__file__).resolve().parent
 CAMINHO_BASE = PASTA_PROJETO / "dados" / "Base Varejo.csv"
 
+SEPARADOR_CSV = ";"
 
 
-# 2. Função para carregar a base de dados
+# 2. Leitura nativa com csv.DictReader
 
-def carregar_base(caminho_csv: Path) -> pd.DataFrame:
+def ler_amostra_com_dictreader(caminho_csv: Path, quantidade_linhas: int = 3):
 
     if not caminho_csv.exists():
-        raise FileNotFoundError(
-            f"Arquivo não encontrado: {caminho_csv}"
-        )
+        raise FileNotFoundError(f"Arquivo não encontrado: {caminho_csv}")
 
-    df = pd.read_csv(caminho_csv, sep=";")
+    linhas_amostra = []
+
+    with caminho_csv.open(mode="r", encoding="utf-8", newline="") as arquivo_csv:
+        leitor_csv = csv.DictReader(arquivo_csv, delimiter=SEPARADOR_CSV)
+
+        colunas = leitor_csv.fieldnames
+
+        for indice, linha in enumerate(leitor_csv):
+            if indice >= quantidade_linhas:
+                break
+
+            linhas_amostra.append(linha)
+
+    return colunas, linhas_amostra
+
+
+def mostrar_amostra_dictreader(colunas, linhas_amostra) -> None:
+
+    print("\n" + "=" * 60)
+    print("LEITURA NATIVA COM csv.DictReader")
+    print("=" * 60)
+
+    print("\nColunas identificadas pelo csv.DictReader:")
+    print(colunas)
+
+    print("\nAmostra das primeiras linhas como dicionário:")
+
+    for numero_linha, linha in enumerate(linhas_amostra, start=1):
+        print(f"\nLinha {numero_linha}:")
+        print(linha)
+
+
+
+# 3. Leitura principal com pandas
+
+def carregar_base_com_pandas(caminho_csv: Path) -> pd.DataFrame:
+
+    if not caminho_csv.exists():
+        raise FileNotFoundError(f"Arquivo não encontrado: {caminho_csv}")
+
+    df = pd.read_csv(caminho_csv, sep=SEPARADOR_CSV)
 
     return df
 
 
-
-# 3. Função para exibir informações iniciais da base
+# 4. Exibição das informações iniciais da base
 
 def mostrar_informacoes_iniciais(df: pd.DataFrame) -> None:
 
     print("\n" + "=" * 60)
-    print("ANÁLISE EXPLORATÓRIA DE DADOS - BASE VAREJO")
+    print("LEITURA PRINCIPAL COM pandas")
     print("=" * 60)
 
     print("\n1. Quantidade de registros e colunas:")
@@ -47,11 +86,15 @@ def mostrar_informacoes_iniciais(df: pd.DataFrame) -> None:
     print(df.head())
 
 
-# 4. Execução principal do script
+
+# 5. Execução principal do script
 
 def main() -> None:
 
-    df_varejo = carregar_base(CAMINHO_BASE)
+    colunas_dictreader, linhas_amostra = ler_amostra_com_dictreader(CAMINHO_BASE)
+    mostrar_amostra_dictreader(colunas_dictreader, linhas_amostra)
+
+    df_varejo = carregar_base_com_pandas(CAMINHO_BASE)
     mostrar_informacoes_iniciais(df_varejo)
 
 
