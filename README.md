@@ -12,14 +12,18 @@ O objetivo deste projeto é realizar uma Análise Exploratória de Dados aplicad
 
 ## Etapa atual
 
-Nesta primeira etapa, o projeto realiza:
+O projeto está na Sprint 2 - Transformação de Strings, Integer, Float e Datetime.
 
-- leitura da base CSV com pandas;
-- exibição da quantidade de registros;
-- exibição da quantidade de colunas;
-- listagem dos nomes das colunas;
-- exibição dos tipos de dados;
-- visualização das primeiras linhas da base.
+Nesta etapa, foram desenvolvidas funções para:
+
+- padronizar nomes de colunas;
+- limpar valores textuais;
+- converter valores inteiros;
+- converter valores decimais;
+- converter strings de data usando o módulo `datetime`;
+- usar expressões regulares para apoiar a limpeza e transformação dos dados.
+
+A limpeza completa de nulos, duplicatas e categorias inválidas será realizada na Sprint 3.
 
 ## Como executar
 
