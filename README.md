@@ -1,44 +1,33 @@
 # Mini-Projeto - Análise de Dados com Python
 
-Projeto desenvolvido para a disciplina Análise de Dados com Python - Turma T1.
+Repositório: https://github.com/NicolasJunker/Miniprojeto_NicolasJRomanello_Analise_de_Dados_T1
 
-O objetivo deste projeto é realizar uma Análise Exploratória de Dados aplicada a uma base de varejo, identificando problemas de qualidade, tratando dados inconsistentes e gerando estatísticas e agrupamentos básicos.
+Projeto desenvolvido para a disciplina **Análise de Dados com Python - Turma T1**.
 
-## Estrutura inicial
+O objetivo deste projeto é realizar uma Análise Exploratória de Dados aplicada a uma base de varejo, passando pelas etapas de importação, transformação, limpeza, estatística descritiva, agrupamentos e relatório final.
 
-- "dados/Base Varejo.csv": base original do projeto.
-- "miniprojeto_varejo.py": script principal da análise.
-- "saidas/": pasta reservada para arquivos gerados durante o projeto.
+## Tecnologias utilizadas
 
-## Etapa atual
+- Python
+- pandas
+- csv
+- re
+- datetime
+- Visual Studio Code
+- Git e GitHub
 
-O projeto está na Sprint 4 - Estatística Descritiva.
+## Estrutura do projeto
 
-Nesta etapa, foram geradas estatísticas descritivas da coluna `CL_FHL`, que representa o número de filhos do cliente.
-
-As estatísticas calculadas foram:
-
-- contagem;
-- média;
-- mediana;
-- desvio padrão;
-- moda;
-- mínimo;
-- primeiro quartil;
-- segundo quartil;
-- terceiro quartil;
-- máximo.
-
-Além da análise sobre a base limpa, também foi criada uma análise complementar por cliente único, evitando que clientes com muitas compras tenham peso repetido na estatística.
-
-
-## Como executar
-
-No terminal, rode:
-
-```bash
-python miniprojeto_varejo.py
-
-#ou
-
-py miniprojeto_varejo.py
+```text
+Miniprojeto_NicolasJRomanello_Analise_de_Dados_T1/
+│
+├── dados/
+│   └── Base Varejo.csv
+│
+├── saidas/
+│
+├── .gitignore
+├── miniprojeto_varejo.py
+├── README.md
+├── README_NicolasJRomanello_AnaliseDeDados_T1.md
+└── requirements.txt

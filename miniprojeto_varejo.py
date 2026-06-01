@@ -363,12 +363,16 @@ def remover_duplicatas_exatas(df: pd.DataFrame) -> pd.DataFrame:
 
 def transformar_colunas_texto(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Aplica limpeza de texto em todas as colunas textuais da base.
+    Aplica limpeza de texto em colunas textuais da base.
     """
 
     df_transformado = df.copy()
 
-    colunas_texto = df_transformado.select_dtypes(include="object").columns
+    colunas_texto = [
+        coluna
+        for coluna in df_transformado.columns
+        if df_transformado[coluna].dtype == "object"
+    ]
 
     for coluna in colunas_texto:
         df_transformado[coluna] = df_transformado[coluna].apply(limpar_texto)
@@ -686,20 +690,291 @@ def gerar_estatisticas_filhos_cliente_unico(df: pd.DataFrame) -> dict:
         titulo="ESTATÍSTICA DESCRITIVA DE CL_FHL POR CLIENTE ÚNICO"
     )
 
+# ------------------------------------------------------------
+# 11. Agrupamentos, relatório final e conclusões
+# ------------------------------------------------------------
+
+def formatar_inteiro(valor) -> str:
+    """
+    Formata números inteiros para exibição no terminal.
+    """
+
+    return f"{int(valor):,}".replace(",", ".")
+
+
+def formatar_data(valor) -> str:
+    """
+    Formata datas para o padrão brasileiro.
+    """
+
+    if pd.isna(valor):
+        return "Não encontrada"
+
+    return valor.strftime("%d/%m/%Y")
+
+
+def mostrar_ranking(titulo: str, serie: pd.Series, limite: int = 10) -> None:
+    """
+    Exibe rankings simples no terminal.
+    """
+
+    print("\n" + "=" * 60)
+    print(titulo)
+    print("=" * 60)
+
+    if serie.empty:
+        print("Nenhum dado encontrado.")
+        return
+
+    print(serie.head(limite))
+
+
+def gerar_agrupamentos(df: pd.DataFrame) -> dict:
+    """
+    Explora padrões de agrupamento na base limpa.
+
+    Agrupamentos gerados:
+    - itens por gênero;
+    - compras únicas por gênero;
+    - itens por categoria;
+    - compras únicas por categoria;
+    - itens por segmento;
+    - compras únicas por segmento;
+    - registros por mês.
+    """
+
+    print("\n" + "=" * 60)
+    print("AGRUPAMENTOS DA BASE LIMPA")
+    print("=" * 60)
+
+    agrupamentos = {}
+
+    if "CL_GENERO" in df.columns:
+        itens_por_genero = df.groupby("CL_GENERO").size().sort_values(ascending=False)
+        compras_por_genero = (
+            df.drop_duplicates(subset=["CO_ID"])
+            .groupby("CL_GENERO")
+            .size()
+            .sort_values(ascending=False)
+        )
+
+        agrupamentos["itens_por_genero"] = itens_por_genero
+        agrupamentos["compras_por_genero"] = compras_por_genero
+
+        mostrar_ranking("ITENS POR GÊNERO", itens_por_genero)
+        mostrar_ranking("COMPRAS ÚNICAS POR GÊNERO", compras_por_genero)
+
+    if "PR_CAT" in df.columns:
+        itens_por_categoria = df.groupby("PR_CAT").size().sort_values(ascending=False)
+        compras_por_categoria = (
+            df.groupby("PR_CAT")["CO_ID"]
+            .nunique()
+            .sort_values(ascending=False)
+        )
+
+        agrupamentos["itens_por_categoria"] = itens_por_categoria
+        agrupamentos["compras_por_categoria"] = compras_por_categoria
+
+        mostrar_ranking("ITENS POR CATEGORIA", itens_por_categoria)
+        mostrar_ranking("COMPRAS ÚNICAS POR CATEGORIA", compras_por_categoria)
+
+    if "CL_SEG" in df.columns:
+        itens_por_segmento = df.groupby("CL_SEG").size().sort_values(ascending=False)
+        compras_por_segmento = (
+            df.drop_duplicates(subset=["CO_ID"])
+            .groupby("CL_SEG")
+            .size()
+            .sort_values(ascending=False)
+        )
+
+        agrupamentos["itens_por_segmento"] = itens_por_segmento
+        agrupamentos["compras_por_segmento"] = compras_por_segmento
+
+        mostrar_ranking("ITENS POR SEGMENTO", itens_por_segmento)
+        mostrar_ranking("COMPRAS ÚNICAS POR SEGMENTO", compras_por_segmento)
+
+    if "DATA" in df.columns:
+        df_com_mes = df.copy()
+        df_com_mes["ANO_MES"] = df_com_mes["DATA"].dt.to_period("M").astype(str)
+
+        registros_por_mes = (
+            df_com_mes.groupby("ANO_MES")
+            .size()
+            .sort_values(ascending=False)
+        )
+
+        agrupamentos["registros_por_mes"] = registros_por_mes
+
+        mostrar_ranking("MESES COM MAIOR VOLUME DE REGISTROS", registros_por_mes)
+
+    return agrupamentos
+
+
+def obter_primeiro_indice(serie: pd.Series):
+    """
+    Retorna o primeiro índice de uma Series ordenada.
+    """
+
+    if serie.empty:
+        return "Não encontrado"
+
+    return serie.index[0]
+
+
+def obter_primeiro_valor(serie: pd.Series):
+    """
+    Retorna o primeiro valor de uma Series ordenada.
+    """
+
+    if serie.empty:
+        return 0
+
+    return serie.iloc[0]
+
+
+def gerar_conclusoes(df: pd.DataFrame, agrupamentos: dict) -> list:
+    """
+    Gera conclusões automáticas com base nos agrupamentos.
+    """
+
+    conclusoes = []
+
+    total_linhas = df.shape[0]
+    total_colunas = df.shape[1]
+
+    conclusoes.append(
+        f"Após a limpeza, a base ficou com {formatar_inteiro(total_linhas)} "
+        f"registros e {total_colunas} colunas úteis."
+    )
+
+    if "CO_ID" in df.columns:
+        total_compras = df["CO_ID"].nunique()
+        conclusoes.append(
+            f"Foram identificadas {formatar_inteiro(total_compras)} "
+            "compras únicas na base limpa."
+        )
+
+    if "CL_ID" in df.columns:
+        total_clientes = df["CL_ID"].nunique()
+        conclusoes.append(
+            f"A base possui {formatar_inteiro(total_clientes)} clientes únicos."
+        )
+
+    if "itens_por_categoria" in agrupamentos:
+        categoria_top = obter_primeiro_indice(agrupamentos["itens_por_categoria"])
+        qtd_categoria_top = obter_primeiro_valor(agrupamentos["itens_por_categoria"])
+
+        conclusoes.append(
+            f"A categoria com maior volume de registros foi {categoria_top}, "
+            f"com {formatar_inteiro(qtd_categoria_top)} itens registrados."
+        )
+
+    if "compras_por_genero" in agrupamentos:
+        genero_top = obter_primeiro_indice(agrupamentos["compras_por_genero"])
+        qtd_genero_top = obter_primeiro_valor(agrupamentos["compras_por_genero"])
+
+        conclusoes.append(
+            f"O gênero com maior quantidade de compras únicas foi {genero_top}, "
+            f"com {formatar_inteiro(qtd_genero_top)} compras."
+        )
+
+    if "compras_por_segmento" in agrupamentos:
+        segmento_top = obter_primeiro_indice(agrupamentos["compras_por_segmento"])
+        qtd_segmento_top = obter_primeiro_valor(agrupamentos["compras_por_segmento"])
+
+        conclusoes.append(
+            f"O segmento com maior quantidade de compras únicas foi {segmento_top}, "
+            f"com {formatar_inteiro(qtd_segmento_top)} compras."
+        )
+
+    return conclusoes[:6]
+
+
+def gerar_relatorio_final(
+    df_original: pd.DataFrame,
+    df_limpo: pd.DataFrame,
+    agrupamentos: dict,
+    estatisticas_filhos: dict
+) -> None:
+    """
+    Gera o relatório final no terminal.
+
+    O relatório reúne:
+    - contadores principais;
+    - período analisado;
+    - dados de qualidade;
+    - conclusões finais.
+    """
+
+    print("\n" + "=" * 60)
+    print("RELATÓRIO FINAL DA ANÁLISE")
+    print("=" * 60)
+
+    linhas_originais = df_original.shape[0]
+    colunas_originais = df_original.shape[1]
+    linhas_limpas = df_limpo.shape[0]
+    colunas_limpas = df_limpo.shape[1]
+
+    print("\n1. Contadores principais:")
+    print(f"Linhas originais: {formatar_inteiro(linhas_originais)}")
+    print(f"Colunas originais: {colunas_originais}")
+    print(f"Linhas após limpeza: {formatar_inteiro(linhas_limpas)}")
+    print(f"Colunas após limpeza: {colunas_limpas}")
+    print(f"Linhas removidas: {formatar_inteiro(linhas_originais - linhas_limpas)}")
+
+    if "CO_ID" in df_limpo.columns:
+        print(f"Compras únicas: {formatar_inteiro(df_limpo['CO_ID'].nunique())}")
+
+    if "CL_ID" in df_limpo.columns:
+        print(f"Clientes únicos: {formatar_inteiro(df_limpo['CL_ID'].nunique())}")
+
+    if "PR_ID" in df_limpo.columns:
+        print(f"Produtos únicos: {formatar_inteiro(df_limpo['PR_ID'].nunique())}")
+
+    if "DATA" in df_limpo.columns:
+        datas_validas = df_limpo["DATA"].dropna()
+
+        if not datas_validas.empty:
+            data_inicial = datas_validas.min()
+            data_final = datas_validas.max()
+
+            print("\n2. Período analisado:")
+            print(f"Data inicial: {formatar_data(data_inicial)}")
+            print(f"Data final: {formatar_data(data_final)}")
+
+    if estatisticas_filhos:
+        print("\n3. Resumo da coluna CL_FHL:")
+        print(f"Média de filhos: {formatar_numero(estatisticas_filhos['media'])}")
+        print(f"Mediana de filhos: {formatar_numero(estatisticas_filhos['mediana'])}")
+        print(f"Moda de filhos: {formatar_moda(estatisticas_filhos['moda'])}")
+
+    print("\n4. Observações sobre qualidade dos dados:")
+    print("- Colunas totalmente vazias foram removidas.")
+    print("- Categorias vazias ou inválidas foram preenchidas com Sem Categoria.")
+    print("- Duplicatas exatas foram removidas.")
+    print("- A base não possui colunas de dimensões físicas para tratamento específico.")
+    print("- A análise não calcula faturamento, pois não há coluna de valor monetário.")
+
+    conclusoes = gerar_conclusoes(df_limpo, agrupamentos)
+
+    print("\n5. Conclusões principais:")
+    for numero, conclusao in enumerate(conclusoes, start=1):
+        print(f"{numero}. {conclusao}")
+
 
 # ------------------------------------------------------------
-# 11. Execução principal do script
+# 12. Execução principal do script
 # ------------------------------------------------------------
 
 def main() -> None:
     """
     Função principal do projeto.
 
-    Sprint 4:
-    - mantém importação, transformação e limpeza das sprints anteriores;
-    - calcula estatísticas descritivas da coluna CL_FHL;
-    - gera análise por linha da base limpa;
-    - gera análise complementar por cliente único.
+    Sprint 5:
+    - mantém importação, transformação, limpeza e estatística;
+    - gera agrupamentos com groupby();
+    - constrói relatório final no terminal;
+    - apresenta conclusões principais da análise.
     """
 
     colunas_dictreader, linhas_amostra = ler_amostra_com_dictreader(CAMINHO_BASE)
@@ -714,12 +989,21 @@ def main() -> None:
     validar_identificador_compra(df_limpo)
     mostrar_resultado_sprint3(df_varejo, df_limpo)
 
-    gerar_estatisticas_filhos(
+    estatisticas_filhos = gerar_estatisticas_filhos(
         df=df_limpo,
         titulo="ESTATÍSTICA DESCRITIVA DE CL_FHL NA BASE LIMPA"
     )
 
     gerar_estatisticas_filhos_cliente_unico(df_limpo)
+
+    agrupamentos = gerar_agrupamentos(df_limpo)
+
+    gerar_relatorio_final(
+        df_original=df_varejo,
+        df_limpo=df_limpo,
+        agrupamentos=agrupamentos,
+        estatisticas_filhos=estatisticas_filhos
+    )
 
 
 if __name__ == "__main__":
