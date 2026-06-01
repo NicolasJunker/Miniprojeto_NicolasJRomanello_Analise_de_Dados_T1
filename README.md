@@ -12,17 +12,24 @@ O objetivo deste projeto é realizar uma Análise Exploratória de Dados aplicad
 
 ## Etapa atual
 
-O projeto está na Sprint 3 - Limpeza de Nulos e Duplicatas.
+O projeto está na Sprint 4 - Estatística Descritiva.
 
-Nesta etapa, foram realizadas as seguintes ações:
+Nesta etapa, foram geradas estatísticas descritivas da coluna `CL_FHL`, que representa o número de filhos do cliente.
 
-- remoção de colunas totalmente vazias;
-- identificação de valores nulos antes e depois da limpeza;
-- tratamento de categorias vazias, nulas ou inválidas com o valor `Sem Categoria`;
-- uso de condicionais `if/else` para tratar categorias inválidas;
-- conversão da coluna de data usando o módulo `datetime`;
-- remoção de duplicatas exatas;
-- validação da regra de negócio do identificador de compra `CO_ID`.
+As estatísticas calculadas foram:
+
+- contagem;
+- média;
+- mediana;
+- desvio padrão;
+- moda;
+- mínimo;
+- primeiro quartil;
+- segundo quartil;
+- terceiro quartil;
+- máximo.
+
+Além da análise sobre a base limpa, também foi criada uma análise complementar por cliente único, evitando que clientes com muitas compras tenham peso repetido na estatística.
 
 
 ## Como executar

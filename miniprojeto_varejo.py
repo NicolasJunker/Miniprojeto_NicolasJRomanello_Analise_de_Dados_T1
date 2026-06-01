@@ -569,20 +569,137 @@ def mostrar_resultado_sprint3(df_original: pd.DataFrame, df_limpo: pd.DataFrame)
 
 
 # ------------------------------------------------------------
-# 10. Execução principal do script
+# 10. Estatística descritiva da coluna Número de Filhos
+# ------------------------------------------------------------
+
+def formatar_numero(valor) -> str:
+    """
+    Formata números para exibição no terminal.
+    """
+
+    if pd.isna(valor):
+        return "Não calculado"
+
+    return f"{float(valor):.2f}".replace(".", ",")
+
+
+def formatar_moda(lista_moda) -> str:
+    """
+    Formata a moda para exibição.
+    A moda pode ter um único valor ou vários valores.
+    """
+
+    if len(lista_moda) == 0:
+        return "Sem moda"
+
+    valores_formatados = []
+
+    for valor in lista_moda:
+        if float(valor).is_integer():
+            valores_formatados.append(str(int(valor)))
+        else:
+            valores_formatados.append(formatar_numero(valor))
+
+    return ", ".join(valores_formatados)
+
+
+def gerar_estatisticas_filhos(
+    df: pd.DataFrame,
+    titulo: str,
+    coluna_filhos: str = "CL_FHL"
+) -> dict:
+    """
+    Gera estatísticas descritivas da coluna de número de filhos.
+
+    Estatísticas calculadas:
+    - contagem;
+    - média;
+    - mediana;
+    - desvio padrão;
+    - moda;
+    - mínimo;
+    - primeiro quartil;
+    - segundo quartil;
+    - terceiro quartil;
+    - máximo.
+    """
+
+    print("\n" + "=" * 60)
+    print(titulo)
+    print("=" * 60)
+
+    if coluna_filhos not in df.columns:
+        print(f"Coluna {coluna_filhos} não encontrada.")
+        return {}
+
+    serie_filhos = pd.to_numeric(df[coluna_filhos], errors="coerce").dropna()
+
+    if serie_filhos.empty:
+        print(f"A coluna {coluna_filhos} não possui valores válidos.")
+        return {}
+
+    moda = serie_filhos.mode().tolist()
+
+    estatisticas = {
+        "contagem": int(serie_filhos.count()),
+        "media": serie_filhos.mean(),
+        "mediana": serie_filhos.median(),
+        "desvio_padrao": serie_filhos.std(),
+        "moda": moda,
+        "minimo": serie_filhos.min(),
+        "quartil_1": serie_filhos.quantile(0.25),
+        "quartil_2": serie_filhos.quantile(0.50),
+        "quartil_3": serie_filhos.quantile(0.75),
+        "maximo": serie_filhos.max(),
+    }
+
+    print(f"Coluna analisada: {coluna_filhos}")
+    print(f"Contagem: {estatisticas['contagem']}")
+    print(f"Média: {formatar_numero(estatisticas['media'])}")
+    print(f"Mediana: {formatar_numero(estatisticas['mediana'])}")
+    print(f"Desvio padrão: {formatar_numero(estatisticas['desvio_padrao'])}")
+    print(f"Moda: {formatar_moda(estatisticas['moda'])}")
+    print(f"Mínimo: {formatar_numero(estatisticas['minimo'])}")
+    print(f"1º quartil: {formatar_numero(estatisticas['quartil_1'])}")
+    print(f"2º quartil: {formatar_numero(estatisticas['quartil_2'])}")
+    print(f"3º quartil: {formatar_numero(estatisticas['quartil_3'])}")
+    print(f"Máximo: {formatar_numero(estatisticas['maximo'])}")
+
+    return estatisticas
+
+
+def gerar_estatisticas_filhos_cliente_unico(df: pd.DataFrame) -> dict:
+    """
+    Gera estatísticas da coluna CL_FHL considerando cada cliente apenas uma vez.
+    Essa análise é complementar. Ela evita que um cliente com muitas compras
+    pese várias vezes na estatística.
+    """
+
+    if "CL_ID" not in df.columns:
+        print("\nColuna CL_ID não encontrada. Estatística por cliente único não realizada.")
+        return {}
+
+    df_clientes_unicos = df.drop_duplicates(subset=["CL_ID"])
+
+    return gerar_estatisticas_filhos(
+        df=df_clientes_unicos,
+        titulo="ESTATÍSTICA DESCRITIVA DE CL_FHL POR CLIENTE ÚNICO"
+    )
+
+
+# ------------------------------------------------------------
+# 11. Execução principal do script
 # ------------------------------------------------------------
 
 def main() -> None:
     """
     Função principal do projeto.
 
-    Sprint 3:
-    - remove colunas totalmente vazias;
-    - trata categorias vazias com 'Sem Categoria';
-    - verifica nulos;
-    - remove duplicatas exatas;
-    - converte DATA usando datetime;
-    - valida regra de negócio do CO_ID.
+    Sprint 4:
+    - mantém importação, transformação e limpeza das sprints anteriores;
+    - calcula estatísticas descritivas da coluna CL_FHL;
+    - gera análise por linha da base limpa;
+    - gera análise complementar por cliente único.
     """
 
     colunas_dictreader, linhas_amostra = ler_amostra_com_dictreader(CAMINHO_BASE)
@@ -596,6 +713,13 @@ def main() -> None:
 
     validar_identificador_compra(df_limpo)
     mostrar_resultado_sprint3(df_varejo, df_limpo)
+
+    gerar_estatisticas_filhos(
+        df=df_limpo,
+        titulo="ESTATÍSTICA DESCRITIVA DE CL_FHL NA BASE LIMPA"
+    )
+
+    gerar_estatisticas_filhos_cliente_unico(df_limpo)
 
 
 if __name__ == "__main__":
